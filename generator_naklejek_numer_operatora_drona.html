@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generator numeru operatora drona</title>
+  <style>
+    body { font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f5f7; margin: 0; padding: 24px; color: #222; }
+    h1 { font-size: 28px; margin-bottom: 8px; }
+    p { color: #555; margin-top: 0; }
+    .container { max-width: 1000px; margin: auto; }
+    .controls { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); margin-bottom: 24px; }
+    label { font-weight: 600; display: block; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 10px 12px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 16px; }
+    .templates { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .template { background: #fff; border-radius: 12px; padding: 16px; cursor: pointer; border: 2px solid transparent; box-shadow: 0 4px 16px rgba(0,0,0,0.05); transition: 0.2s; }
+    .template:hover { transform: translateY(-2px); }
+    .template.active { border-color: #007aff; }
+    .preview { background: #f0f0f0; padding: 40px; border-radius: 12px; display: flex; justify-content: center; margin-bottom: 24px; }
+    button { background: #007aff; color: white; border: none; padding: 14px 20px; font-size: 16px; border-radius: 10px; cursor: pointer; }
+    button:hover { background: #0063cc; }
+    footer { text-align: center; color: #888; font-size: 14px; margin-top: 32px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Generator numeru operatora drona</h1>
+    <p>Wpisz numer operatora, wybierz szablon i pobierz wektor SVG gotowy do druku.</p>
+
+    <div class="controls">
+      <label for="operator">Numer operatora</label>
+      <input id="operator" value="" />
+    </div>
+
+    <div class="templates" id="templates"></div>
+
+    <div class="preview" id="preview"></div>
+
+    <button id="downloadBtn">Pobierz SVG</button>
+
+    <footer>
+      Projekt non-profit • Darmowe do użytku • Autor: <strong>Paweł Tvga</strong>
+    </footer>
+  </div>
+
+  <script>
+    const templates = [
+      { name: 'Minimal jasny', render: (text) => `<svg xmlns="http://www.w3.org/2000/svg" width="30mm" height="8mm" viewBox="0 0 300 80"><rect x="1" y="1" width="298" height="78" rx="18" fill="#fff" stroke="#bbb" stroke-width="2" /><text x="150" y="52" font-size="28" text-anchor="middle" fill="#222" font-family="Inter, Arial">${text}</text></svg>` },
+      { name: 'Ciemny stealth', render: (text) => `<svg xmlns="http://www.w3.org/2000/svg" width="30mm" height="8mm" viewBox="0 0 300 80"><rect width="300" height="80" rx="18" fill="#111" /><text x="150" y="52" font-size="28" text-anchor="middle" fill="#fff" font-family="Inter, Arial">${text}</text></svg>` },
+      { name: 'DJI clean', render: (text) => `<svg xmlns="http://www.w3.org/2000/svg" width="32mm" height="9mm" viewBox="0 0 320 90"><rect width="320" height="90" rx="16" fill="#f7f8fa" stroke="#d0d3d8" stroke-width="2" /><text x="160" y="35" font-size="18" text-anchor="middle" fill="#8a8a8a" font-family="Inter">OPERATOR ID</text><text x="160" y="65" font-size="30" text-anchor="middle" fill="#111" font-weight="600" font-family="Inter">${text}</text></svg>` },
+      { name: 'DJI + dron (ikonka PRO)', render: (text) => `<svg xmlns="http://www.w3.org/2000/svg" width="36mm" height="10mm" viewBox="0 0 360 100"><rect width="360" height="100" rx="18" fill="#ffffff" stroke="#cfd3d8" stroke-width="2" /><g transform="translate(44,50)" fill="#6b6f76"><rect x="-18" y="-6" width="36" height="12" rx="5" /><rect x="-42" y="-18" width="18" height="8" rx="4" /><rect x="24" y="-18" width="18" height="8" rx="4" /><rect x="-42" y="10" width="18" height="8" rx="4" /><rect x="24" y="10" width="18" height="8" rx="4" /><circle cx="0" cy="0" r="3" fill="#111" /></g><text x="230" y="62" font-size="30" text-anchor="middle" fill="#111" font-weight="600" font-family="Inter">${text}</text></svg>` },
+      { name: 'Techniczny (FPV)', render: (text) => `<svg xmlns="http://www.w3.org/2000/svg" width="34mm" height="10mm" viewBox="0 0 340 100"><rect width="340" height="100" rx="10" fill="#f2f2f2" stroke="#000" stroke-width="3" /><text x="170" y="65" font-size="32" text-anchor="middle" fill="#000" font-family="monospace">${text}</text></svg>` }
+    ];
+
+    let currentTemplate = 0;
+    const templatesEl = document.getElementById('templates');
+    const previewEl = document.getElementById('preview');
+    const operatorInput = document.getElementById('operator');
+
+    function renderTemplates() {
+      templatesEl.innerHTML = '';
+      templates.forEach((tpl, i) => {
+        const div = document.createElement('div');
+        div.className = 'template' + (i === currentTemplate ? ' active' : '');
+        div.innerHTML = `<strong>${tpl.name}</strong><div style="margin-top:12px">${tpl.render('NUMER')}</div>`;
+        div.onclick = () => { currentTemplate = i; update(); };
+        templatesEl.appendChild(div);
+      });
+    }
+
+    function update() {
+      renderTemplates();
+      previewEl.innerHTML = templates[currentTemplate].render(operatorInput.value);
+    }
+
+    operatorInput.oninput = update;
+
+    document.getElementById('downloadBtn').addEventListener('click', function() {
+      const svg = templates[currentTemplate].render(operatorInput.value);
+      const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'numer_operatora_dron.svg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    update();
+  </script>
+</body>
+</html>
